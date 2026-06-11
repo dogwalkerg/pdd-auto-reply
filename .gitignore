@@ -1,0 +1,106 @@
+# ==========================================
+# 拼多多自动回复系统 - Git 忽略规则
+# ------------------------------------------
+# 说明：本项目为多服务架构（backend / websocket / scheduler / common + 前端 frontend），
+#       下列规则覆盖 Python、Node、Docker、测试缓存、运行时数据与编辑器/系统产物。
+# ==========================================
+
+# ===== 环境变量（含密钥/密码，禁止提交；仅保留模板 .env.example）=====
+.env
+.env.*
+!.env.example
+# 前端本地环境覆盖文件
+.env.local
+.env.*.local
+
+# ===== Python 字节码与缓存 =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ===== Python 虚拟环境 =====
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ===== Python 打包与构建产物 =====
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+.installed.cfg
+MANIFEST
+
+# ===== 测试与覆盖率缓存 =====
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+.tox/
+.mypy_cache/
+.ruff_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# ===== 前端（Node / Vite）=====
+node_modules/
+frontend/dist/
+frontend/dist-ssr/
+.vite/
+.vite-temp/
+*.tsbuildinfo
+
+# ===== 前端日志 =====
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== 运行时数据（WebSocket 服务的浏览器登录态 / 用户数据，含登录凭据，禁止提交）=====
+websocket/browser_data/
+websocket/user_data/
+# 兜底：任意位置的 Playwright 持久化目录
+**/browser_data/
+**/user_data/
+
+# ===== 日志文件 =====
+logs/
+*.log
+
+# ===== 数据库本地文件（开发临时）=====
+*.sqlite
+*.sqlite3
+*.db
+
+# ===== 编辑器 / IDE =====
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+# VS Code 与 Kiro 配置目录（整体忽略，不纳入版本管理）
+.vscode/
+.kiro/
+
+# ===== 操作系统产物 =====
+.DS_Store
+Thumbs.db
+desktop.ini

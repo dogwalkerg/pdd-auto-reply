@@ -1,0 +1,220 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pdd_mysql
+    restart: unless-stopped
+    command:
+      - --default-time-zone=+08:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pdd_auto_reply}
+      TZ: Asia/Shanghai
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: pdd_redis
+    restart: unless-stopped
+    command: >
+      sh -c "if [ -n \"$$REDIS_PASSWORD\" ]; then
+               redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes;
+             else
+               redis-server --appendonly yes;
+             fi"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      TZ: Asia/Shanghai
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a $REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    image: ${IMAGE_PREFIX:-ghcr.io/dogwalkerg/pdd-auto-reply}-backend:${IMAGE_TAG:-latest}
+    container_name: pdd_backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      TZ: Asia/Shanghai
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pdd_auto_reply}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      BACKEND_WEB_PORT: ${BACKEND_WEB_PORT:-8089}
+      BACKEND_WEB_SERVICE_URL: ${BACKEND_WEB_SERVICE_URL:-http://backend:8089}
+      WEBSOCKET_SERVICE_URL: ${WEBSOCKET_SERVICE_URL:-http://websocket:8090}
+      SCHEDULER_SERVICE_URL: ${SCHEDULER_SERVICE_URL:-http://scheduler:8091}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
+      DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-change-me-internal-service-token}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${BACKEND_WEB_HOST_PORT:-8089}:8089"
+    volumes:
+      - backend_static:/app/backend/static
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8089/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  websocket:
+    image: ${IMAGE_PREFIX:-ghcr.io/dogwalkerg/pdd-auto-reply}-websocket:${IMAGE_TAG:-latest}
+    container_name: pdd_websocket
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      TZ: Asia/Shanghai
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pdd_auto_reply}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT:-8090}
+      BACKEND_WEB_SERVICE_URL: ${BACKEND_WEB_SERVICE_URL:-http://backend:8089}
+      WEBSOCKET_SERVICE_URL: ${WEBSOCKET_SERVICE_URL:-http://websocket:8090}
+      SCHEDULER_SERVICE_URL: ${SCHEDULER_SERVICE_URL:-http://scheduler:8091}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
+      DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-change-me-internal-service-token}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BROWSER_HEADLESS: ${BROWSER_HEADLESS:-false}
+      MAX_CAPTCHA_CONCURRENT: ${MAX_CAPTCHA_CONCURRENT:-1}
+      PLAYWRIGHT_USER_DATA_DIR: ${PLAYWRIGHT_USER_DATA_DIR:-/app/websocket/browser_data}
+    ports:
+      - "${WEBSOCKET_HOST_PORT:-8090}:8090"
+    volumes:
+      - backend_static:/app/backend/static
+      - websocket_browser_data:/app/websocket/browser_data
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  scheduler:
+    image: ${IMAGE_PREFIX:-ghcr.io/dogwalkerg/pdd-auto-reply}-scheduler:${IMAGE_TAG:-latest}
+    container_name: pdd_scheduler
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      TZ: Asia/Shanghai
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pdd_auto_reply}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      SCHEDULER_PORT: ${SCHEDULER_PORT:-8091}
+      BACKEND_WEB_SERVICE_URL: ${BACKEND_WEB_SERVICE_URL:-http://backend:8089}
+      WEBSOCKET_SERVICE_URL: ${WEBSOCKET_SERVICE_URL:-http://websocket:8090}
+      SCHEDULER_SERVICE_URL: ${SCHEDULER_SERVICE_URL:-http://scheduler:8091}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
+      DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-change-me-internal-service-token}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${SCHEDULER_HOST_PORT:-8091}:8091"
+    volumes:
+      - backend_static:/app/backend/static
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8091/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: ${IMAGE_PREFIX:-ghcr.io/dogwalkerg/pdd-auto-reply}-frontend:${IMAGE_TAG:-latest}
+    container_name: pdd_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      TZ: Asia/Shanghai
+      BACKEND_API_URL: ${BACKEND_API_URL:-http://backend:8089}
+    ports:
+      - "${FRONTEND_HOST_PORT:-80}:80"
+    networks:
+      - pdd_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_static:
+    driver: local
+  websocket_browser_data:
+    driver: local
+
+networks:
+  pdd_network:
+    driver: bridge

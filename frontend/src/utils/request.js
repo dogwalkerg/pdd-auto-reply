@@ -16,8 +16,8 @@ import { showToast, TOAST_TYPE } from '@/utils/toast'
 // 请求超时统一为 90 秒（规范 19）
 const REQUEST_TIMEOUT = 90000
 
-// 后端 API 基址经环境变量配置，未提供时回退为相对路径 /api（经 nginx/vite 代理，禁止写死 localhost）
-const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+// 后端 API 基址经环境变量配置，未提供时回退为相对路径 /api/v1（经 nginx/vite 代理，禁止写死 localhost）
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 // 登录令牌在 localStorage 中的键名（与登录模块保持一致）
 const TOKEN_STORAGE_KEY = 'auth_token'

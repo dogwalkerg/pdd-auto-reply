@@ -139,7 +139,7 @@ jobs:
           BACKEND_WEB_HOST_PORT=127.0.0.1:8089
           WEBSOCKET_HOST_PORT=127.0.0.1:8090
           SCHEDULER_HOST_PORT=127.0.0.1:8091
-          FRONTEND_HOST_PORT=8088
+          FRONTEND_HOST_PORT=18088
           BACKEND_WEB_SERVICE_URL=http://backend:8089
           WEBSOCKET_SERVICE_URL=http://websocket:8090
           SCHEDULER_SERVICE_URL=http://scheduler:8091

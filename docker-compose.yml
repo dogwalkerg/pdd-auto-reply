@@ -124,6 +124,8 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
       DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-change-me-internal-service-token}
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "${BACKEND_WEB_PORT:-8089}:8089"
@@ -176,6 +178,8 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
       DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-change-me-internal-service-token}
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       # Playwright：账号密码登录默认非无头（需必要时人工验证），经环境变量可调
       BROWSER_HEADLESS: ${BROWSER_HEADLESS:-false}
@@ -232,6 +236,8 @@ services:
       SCHEDULER_SERVICE_URL: ${SCHEDULER_SERVICE_URL:-http://scheduler:8091}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-env}
       DATA_ENCRYPT_KEY: ${DATA_ENCRYPT_KEY:-change-me-data-encrypt-key}
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "${SCHEDULER_PORT:-8091}:8091"

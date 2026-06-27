@@ -23,7 +23,7 @@ services:
   # MySQL 8.0 —— 业务数据库（utf8mb4 + 北京时间 +08:00）
   # ==========================================================================
   mysql:
-    image: mysql:8.0
+    image: mariadb:11.4
     container_name: pdd_mysql
     restart: unless-stopped
     # MySQL 启动参数：北京时间 +08:00（需求 24.8）、字符集 utf8mb4（规范 8）

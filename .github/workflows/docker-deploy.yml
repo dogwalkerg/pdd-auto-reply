@@ -109,6 +109,7 @@ jobs:
           sshpass -e ssh -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" /bin/bash <<EOF
           set -euo pipefail
           cd '${{ env.DEPLOY_DIR }}'
+          docker compose down --remove-orphans || true
 
           cat > .env <<'ENVEOF'
           COMPOSE_PROJECT_NAME=pdd-auto-reply
@@ -120,12 +121,12 @@ jobs:
           MYSQL_USER=root
           MYSQL_HOST=mysql
           MYSQL_PORT=3306
-          MYSQL_HOST_PORT=127.0.0.1:3306
+          MYSQL_HOST_PORT=127.0.0.1:33306
           REDIS_PASSWORD=${REDIS_PASSWORD:-pdd_redis_2026}
           REDIS_HOST=redis
           REDIS_PORT=6379
           REDIS_DB=0
-          REDIS_HOST_PORT=127.0.0.1:6379
+          REDIS_HOST_PORT=127.0.0.1:16379
           BACKEND_WEB_PORT=8089
           WEBSOCKET_PORT=8090
           SCHEDULER_PORT=8091

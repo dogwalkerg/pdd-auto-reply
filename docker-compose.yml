@@ -45,8 +45,8 @@ services:
     networks:
       - pdd_network
     healthcheck:
-      # 以 root 账号 ping，确认数据库已可服务
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_PASSWORD:-root}"]
+      # 使用 MariaDB 官方健康检查脚本，确认数据库已可服务
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 10

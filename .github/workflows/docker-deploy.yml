@@ -110,6 +110,12 @@ jobs:
           set -euo pipefail
           cd '${{ env.DEPLOY_DIR }}'
           docker compose down --remove-orphans || true
+          docker images --format '{{.Repository}}:{{.Tag}}' \
+            | grep '^ghcr.io/dogwalkerg/pdd-auto-reply-' \
+            | xargs -r docker rmi -f || true
+          docker image prune -af || true
+          docker container prune -f || true
+          docker builder prune -af || true
 
           cat > .env <<'ENVEOF'
           COMPOSE_PROJECT_NAME=pdd-auto-reply
